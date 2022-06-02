@@ -121,6 +121,11 @@ public final class Example {
                 client.send(new TdApi.SetAuthenticationPhoneNumber(phoneNumber, null), new AuthorizationRequestHandler());
                 break;
             }
+            case TdApi.AuthorizationStateWaitToken.CONSTRUCTOR: {
+                String token = promptString("Please enter token: ");
+                client.send(new TdApi.SetAuthenticationToken(token), new AuthorizationRequestHandler());
+                break;
+            }
             case TdApi.AuthorizationStateWaitOtherDeviceConfirmation.CONSTRUCTOR: {
                 String link = ((TdApi.AuthorizationStateWaitOtherDeviceConfirmation) Example.authorizationState).link;
                 System.out.println("Please confirm this login link on another device: " + link);

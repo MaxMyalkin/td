@@ -2876,6 +2876,7 @@ bool Td::is_authentication_request(int32 id) {
     case td_api::setDatabaseEncryptionKey::ID:
     case td_api::getAuthorizationState::ID:
     case td_api::setAuthenticationPhoneNumber::ID:
+    case td_api::setAuthenticationToken::ID:
     case td_api::resendAuthenticationCode::ID:
     case td_api::checkAuthenticationCode::ID:
     case td_api::registerUser::ID:
@@ -4291,6 +4292,10 @@ void Td::on_request(uint64 id, td_api::setAuthenticationPhoneNumber &request) {
   CLEAN_INPUT_STRING(request.phone_number_);
   send_closure(auth_manager_actor_, &AuthManager::set_phone_number, id, std::move(request.phone_number_),
                std::move(request.settings_));
+}
+
+void Td::on_request(uint64 id, td_api::setAuthenticationToken &request) {
+  send_closure(auth_manager_actor_, &AuthManager::set_token, id, std::move(request.token_));
 }
 
 void Td::on_request(uint64 id, const td_api::resendAuthenticationCode &request) {

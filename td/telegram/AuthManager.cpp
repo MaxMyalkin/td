@@ -68,7 +68,7 @@ AuthManager::AuthManager(int32 api_id, const string &api_hash, ActorShared<> par
     update_state(State::DestroyingKeys);
   } else {
     if (!load_state()) {
-      update_state(State::WaitPhoneNumber);
+      update_state(State::WaitToken);
     }
   }
 }
@@ -105,6 +105,8 @@ tl_object_ptr<td_api::AuthorizationState> AuthManager::get_authorization_state_o
   switch (authorization_state) {
     case State::WaitPhoneNumber:
       return make_tl_object<td_api::authorizationStateWaitPhoneNumber>();
+    case State::WaitToken:
+      return make_tl_object<td_api::authorizationStateWaitToken>();
     case State::WaitCode:
       return send_code_helper_.get_authorization_state_wait_code();
     case State::WaitQrCodeConfirmation:
@@ -264,6 +266,15 @@ void AuthManager::set_phone_number(uint64 query_id, string phone_number,
 
   start_net_query(NetQueryType::SendCode, G()->net_query_creator().create_unauth(send_code_helper_.send_code(
                                               std::move(phone_number), settings, api_id_, api_hash_)));
+}
+
+void AuthManager::set_token(uint64 query_id, string token) {
+  if (state_ != State::WaitToken) {
+      return on_query_error(query_id, Status::Error(400, "Call to setAuthenticationToken unexpected"));
+  }
+  // TODO
+  LOG(INFO) << "Receive token = " << token;
+  return on_query_error(query_id, Status::Error(400, "ok token"));
 }
 
 void AuthManager::resend_authentication_code(uint64 query_id) {
@@ -930,7 +941,7 @@ void AuthManager::update_state(State new_state, bool force, bool should_save_sta
 bool AuthManager::load_state() {
   auto data = G()->td_db()->get_binlog_pmc()->get("auth_state");
   if (data.empty()) {
-    LOG(INFO) << "Have no saved auth_state. Waiting for phone number";
+    LOG(INFO) << "Have no saved auth_state. Waiting for token";
     return false;
   }
   DbState db_state;

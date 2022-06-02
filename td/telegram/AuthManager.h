@@ -35,6 +35,7 @@ class AuthManager final : public NetActor {
 
   void set_phone_number(uint64 query_id, string phone_number,
                         td_api::object_ptr<td_api::phoneNumberAuthenticationSettings> settings);
+  void set_token(uint64 query_id, string token);
   void resend_authentication_code(uint64 query_id);
   void check_code(uint64 query_id, string code);
   void register_user(uint64 query_id, string first_name, string last_name);
@@ -61,6 +62,7 @@ class AuthManager final : public NetActor {
   enum class State : int32 {
     None,
     WaitPhoneNumber,
+    WaitToken,
     WaitCode,
     WaitQrCodeConfirmation,
     WaitPassword,

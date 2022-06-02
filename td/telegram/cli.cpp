@@ -1771,6 +1771,8 @@ class CliClient final : public Actor {
     } else if (op == "sap" || op == "sapn") {
       send_request(
           td_api::make_object<td_api::setAuthenticationPhoneNumber>(args, get_phone_number_authentication_settings()));
+    } else if (op == "setAuthenticationToken") {
+      send_request(td_api::make_object<td_api::setAuthenticationToken>(args));
     } else if (op == "rac") {
       send_request(td_api::make_object<td_api::resendAuthenticationCode>());
     } else if (op == "cdek" || op == "CheckDatabaseEncryptionKey") {

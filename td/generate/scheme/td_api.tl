@@ -92,6 +92,10 @@ authorizationStateWaitEncryptionKey is_encrypted:Bool = AuthorizationState;
 //@description TDLib needs the user's phone number to authorize. Call `setAuthenticationPhoneNumber` to provide the phone number, or use `requestQrCodeAuthentication`, or `checkAuthenticationBotToken` for other authentication options
 authorizationStateWaitPhoneNumber = AuthorizationState;
 
+//@description TDLib needs the user's token to authorize. Call `setAuthenticationToken` to provide the token
+authorizationStateWaitToken = AuthorizationState;
+
+
 //@description TDLib needs the user's authentication code to authorize @code_info Information about the authorization code that was sent
 authorizationStateWaitCode code_info:authenticationCodeInfo = AuthorizationState;
 
@@ -4331,6 +4335,10 @@ checkDatabaseEncryptionKey encryption_key:bytes = Ok;
 //-or if there is no pending authentication query and the current authorization state is authorizationStateWaitCode, authorizationStateWaitRegistration, or authorizationStateWaitPassword
 //@phone_number The phone number of the user, in international format @settings Settings for the authentication of the user's phone number; pass null to use default settings
 setAuthenticationPhoneNumber phone_number:string settings:phoneNumberAuthenticationSettings = Ok;
+
+//@description Sets the token of the user. Works only when the current authorization state is authorizationStateWaitToken,
+//@token The token of the user
+setAuthenticationToken token:string = Ok;
 
 //@description Re-sends an authentication code to the user. Works only when the current authorization state is authorizationStateWaitCode, the next_code_type of the result is not null and the server-specified timeout has passed
 resendAuthenticationCode = Ok;
