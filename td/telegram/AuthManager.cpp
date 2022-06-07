@@ -286,7 +286,7 @@ void AuthManager::set_token(uint64 query_id, string token) {
 //  G()->
   // TODO
   // authDataShared.setAuthKey()
-  send_closure(G()->net_query_dispatcher().dc_auth_manager_, &DcAuthManager::);
+//  send_closure(G()->net_query_dispatcher().dc_auth_manager_, &DcAuthManager::);
 //  G()->net_query_dispatcher().dc_auth_manager_.get().get_actor_unsafe()
   LOG(INFO) << "Receive token = " << token;
   return on_query_error(query_id, Status::Error(400, "ok token"));
