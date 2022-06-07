@@ -33,7 +33,6 @@ class DcAuthManager final : public NetQueryCallback {
 
   void check_authorization_is_ok();
 
- private:
   struct DcInfo {
     DcId dc_id;
     std::shared_ptr<AuthDataShared> shared_auth_data;
@@ -46,9 +45,10 @@ class DcAuthManager final : public NetQueryCallback {
     BufferSlice export_bytes;
   };
 
-  ActorShared<> parent_;
-
   std::vector<DcInfo> dcs_;
+
+ private:
+  ActorShared<> parent_;
   DcId main_dc_id_;
   bool need_check_authorization_is_ok_{false};
   bool close_flag_{false};

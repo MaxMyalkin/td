@@ -57,13 +57,6 @@ class NetQueryDispatcher {
 
   void set_main_dc_id(int32 new_main_dc_id);
   void check_authorization_is_ok();
-
- private:
-  std::atomic<bool> stop_flag_{false};
-  bool need_destroy_auth_key_{false};
-  ActorOwn<NetQueryDelayer> delayer_;
-  ActorOwn<DcAuthManager> dc_auth_manager_;
-  ActorOwn<MultiSequenceDispatcher> sequence_dispatcher_;
   struct Dc {
     DcId id_;
     std::atomic<bool> is_valid_{false};
@@ -76,6 +69,15 @@ class NetQueryDispatcher {
   };
   static constexpr size_t MAX_DC_COUNT = 1000;
   std::array<Dc, MAX_DC_COUNT> dcs_;
+
+  ActorOwn<DcAuthManager> dc_auth_manager_;
+
+ private:
+  std::atomic<bool> stop_flag_{false};
+  bool need_destroy_auth_key_{false};
+  ActorOwn<NetQueryDelayer> delayer_;
+  ActorOwn<MultiSequenceDispatcher> sequence_dispatcher_;
+
 #if TD_EMSCRIPTEN  // FIXME
   std::atomic<int32> main_dc_id_{2};
 #else

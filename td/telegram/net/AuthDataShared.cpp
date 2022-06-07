@@ -34,12 +34,14 @@ class AuthDataSharedImpl final : public AuthDataShared {
   }
 
   mtproto::AuthKey get_auth_key() final {
+    LOG(INFO) << "mixingrr " << " get_auth_key on AuthDataShared ";
     string dc_key = G()->td_db()->get_binlog_pmc()->get(auth_key_key());
 
     mtproto::AuthKey res;
     if (!dc_key.empty()) {
       unserialize(res, dc_key).ensure();
     }
+    LOG(INFO) << "mixingrr " << " get_auth_key on AuthDataShared result" << res.key() ;
     return res;
   }
 
@@ -48,6 +50,7 @@ class AuthDataSharedImpl final : public AuthDataShared {
   }
 
   void set_auth_key(const mtproto::AuthKey &auth_key) final {
+    LOG(INFO) << "mixingrr set_auth_key on AuthDataShared" << auth_key.key();
     G()->td_db()->get_binlog_pmc()->set(auth_key_key(), serialize(auth_key));
     log_auth_key(auth_key);
 

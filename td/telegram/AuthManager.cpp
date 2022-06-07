@@ -42,6 +42,9 @@ namespace td {
 
 AuthManager::AuthManager(int32 api_id, const string &api_hash, ActorShared<> parent)
     : parent_(std::move(parent)), api_id_(api_id), api_hash_(api_hash) {
+
+  LOG(INFO) << "mixingrr state 1";
+
   string auth_str = G()->td_db()->get_binlog_pmc()->get("auth");
   if (auth_str == "ok") {
     string is_bot_str = G()->td_db()->get_binlog_pmc()->get("auth_is_bot");
@@ -68,7 +71,9 @@ AuthManager::AuthManager(int32 api_id, const string &api_hash, ActorShared<> par
     update_state(State::DestroyingKeys);
   } else {
     if (!load_state()) {
-      update_state(State::WaitToken);
+      LOG(INFO) << "mixingrr state 2";
+      update_state(State::WaitPhoneNumber);
+//      update_state(State::WaitToken);
     }
   }
 }
@@ -238,6 +243,7 @@ void AuthManager::on_update_login_token() {
 
 void AuthManager::set_phone_number(uint64 query_id, string phone_number,
                                    td_api::object_ptr<td_api::phoneNumberAuthenticationSettings> settings) {
+  LOG(INFO) << "mixingrr state 3";
   if (state_ != State::WaitPhoneNumber) {
     if ((state_ == State::WaitCode || state_ == State::WaitPassword || state_ == State::WaitRegistration) &&
         net_query_id_ == 0) {
@@ -263,7 +269,7 @@ void AuthManager::set_phone_number(uint64 query_id, string phone_number,
   }
 
   on_new_query(query_id);
-
+  LOG(INFO) << "mixingrr state 4";
   start_net_query(NetQueryType::SendCode, G()->net_query_creator().create_unauth(send_code_helper_.send_code(
                                               std::move(phone_number), settings, api_id_, api_hash_)));
 }
@@ -272,7 +278,16 @@ void AuthManager::set_token(uint64 query_id, string token) {
   if (state_ != State::WaitToken) {
       return on_query_error(query_id, Status::Error(400, "Call to setAuthenticationToken unexpected"));
   }
+
+  //получаем dc id
+  auto dc_id = G()->net_query_dispatcher().get_main_dc_id();
+  auto dcPos = static_cast<size_t>(dc_id.get_raw_id() - 1);
+//  G()->net_query_dispatcher().dcs_[dcPos].main_session_;
+//  G()->
   // TODO
+  // authDataShared.setAuthKey()
+  send_closure(G()->net_query_dispatcher().dc_auth_manager_, &DcAuthManager::);
+//  G()->net_query_dispatcher().dc_auth_manager_.get().get_actor_unsafe()
   LOG(INFO) << "Receive token = " << token;
   return on_query_error(query_id, Status::Error(400, "ok token"));
 }
@@ -293,12 +308,15 @@ void AuthManager::resend_authentication_code(uint64 query_id) {
 }
 
 void AuthManager::check_code(uint64 query_id, string code) {
+  LOG(INFO) << "mixingrr state 6";
   if (state_ != State::WaitCode) {
     return on_query_error(query_id, Status::Error(400, "Call to checkAuthenticationCode unexpected"));
   }
 
   code_ = std::move(code);
   on_new_query(query_id);
+  LOG(INFO) << "mixingrr AuthManager::check_code " << code;
+  LOG(INFO) << "mixingrr state 7";
   start_net_query(NetQueryType::SignIn,
                   G()->net_query_creator().create_unauth(telegram_api::auth_signIn(
                       send_code_helper_.phone_number().str(), send_code_helper_.phone_code_hash().str(), code_)));
@@ -465,6 +483,7 @@ void AuthManager::start_net_query(NetQueryType net_query_type, NetQueryPtr net_q
 }
 
 void AuthManager::on_send_code_result(NetQueryPtr &result) {
+  LOG(INFO) << "mixingrr state 5";
   auto r_sent_code = fetch_result<telegram_api::auth_sendCode>(result->ok());
   if (r_sent_code.is_error()) {
     return on_query_error(r_sent_code.move_as_error());
@@ -516,6 +535,7 @@ void AuthManager::on_request_qr_code_result(NetQueryPtr &result, bool is_import)
 
 void AuthManager::on_get_login_token(tl_object_ptr<telegram_api::auth_LoginToken> login_token) {
   LOG(INFO) << "Receive " << to_string(login_token);
+  LOG(INFO) << "mixingrr token " << to_string(login_token);
 
   login_code_retry_delay_ = 0;
 
@@ -524,6 +544,7 @@ void AuthManager::on_get_login_token(tl_object_ptr<telegram_api::auth_LoginToken
     case telegram_api::auth_loginToken::ID: {
       auto token = move_tl_object_as<telegram_api::auth_loginToken>(login_token);
       login_token_ = token->token_.as_slice().str();
+      LOG(INFO) << "mixingrr token with type auth_loginToken " << login_token_;
       set_login_token_expires_at(Time::now() + td::max(token->expires_ - G()->server_time(), 1.0));
       update_state(State::WaitQrCodeConfirmation, true);
       if (query_id_ != 0) {
@@ -549,6 +570,7 @@ void AuthManager::on_get_login_token(tl_object_ptr<telegram_api::auth_LoginToken
     }
     case telegram_api::auth_loginTokenSuccess::ID: {
       auto token = move_tl_object_as<telegram_api::auth_loginTokenSuccess>(login_token);
+      LOG(INFO) << "mixingrr token with type auth_loginTokenSuccess";
       on_get_authorization(std::move(token->authorization_));
       break;
     }
@@ -670,13 +692,17 @@ void AuthManager::on_check_password_recovery_code_result(NetQueryPtr &result) {
 }
 
 void AuthManager::on_authentication_result(NetQueryPtr &result, bool is_from_current_query) {
+  LOG(INFO) << "mixingrr state 9";
+  LOG(INFO) << "mixingrr on_authentication_result";
   auto r_sign_in = fetch_result<telegram_api::auth_signIn>(result->ok());
   if (r_sign_in.is_error()) {
+    LOG(INFO) << "mixingrr signin error";
     if (is_from_current_query && query_id_ != 0) {
       return on_query_error(r_sign_in.move_as_error());
     }
     return;
   }
+  LOG(INFO) << "mixingrr signin ok";
   on_get_authorization(r_sign_in.move_as_ok());
 }
 
@@ -752,6 +778,8 @@ void AuthManager::on_delete_account_result(NetQueryPtr &result) {
 }
 
 void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authorization> auth_ptr) {
+  LOG(INFO) << "mixingrr state 10";
+  LOG(INFO) << "mixingrr " << " on_get_authorization " << to_string(auth_ptr);
   if (state_ == State::Ok) {
     LOG(WARNING) << "Ignore duplicated auth.Authorization";
     if (query_id_ != 0) {
@@ -770,6 +798,7 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
     return;
   }
   auto auth = telegram_api::move_object_as<telegram_api::auth_authorization>(auth_ptr);
+  LOG(INFO) << "mixingrr " << " on_get_authorization auth" << to_string(auth);
 
   G()->shared_config().set_option_integer("authorization_date", G()->unix_time());
   if (was_check_bot_token_) {
@@ -784,6 +813,7 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
   new_hint_.clear();
   state_ = State::Ok;
   td_->contacts_manager_->on_get_user(std::move(auth->user_), "on_get_authorization", true);
+  LOG(INFO) << "mixingrr state 11";
   update_state(State::Ok, true);
   if (!td_->contacts_manager_->get_my_id().is_valid()) {
     LOG(ERROR) << "Server doesn't send proper authorization";
@@ -818,6 +848,8 @@ void AuthManager::on_get_authorization(tl_object_ptr<telegram_api::auth_Authoriz
   if (query_id_ != 0) {
     on_query_ok();
   }
+
+  // authDataShared.getAuthKey()
 }
 
 void AuthManager::on_result(NetQueryPtr result) {
@@ -880,6 +912,8 @@ void AuthManager::on_result(NetQueryPtr result) {
     case NetQueryType::BotAuthentication:
     case NetQueryType::CheckPassword:
     case NetQueryType::RecoverPassword:
+      LOG(INFO) << "mixingrr state 8";
+      LOG(INFO) << "mixingrr AuthManager::on_result for SignIn";
       on_authentication_result(result, true);
       break;
     case NetQueryType::Authentication:

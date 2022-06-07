@@ -484,6 +484,7 @@ Status Session::on_pong() {
 }
 
 void Session::on_auth_key_updated() {
+  LOG(INFO) << "mixingrr Session::on_auth_key_updated()";
   shared_auth_data_->set_auth_key(auth_data_.get_main_auth_key());
 }
 
@@ -783,6 +784,8 @@ Status Session::on_message_result_ok(uint64 id, BufferSlice packet, size_t origi
       if (query_ptr->query->tl_constructor() != telegram_api::auth_importAuthorization::ID) {
         G()->net_query_dispatcher().set_main_dc_id(raw_dc_id_);
       }
+
+      LOG(INFO) << "mixingrr set auth from Session::on_message_result_ok key " << auth_data_.get_main_auth_key().key();
       auth_data_.set_auth_flag(true);
       shared_auth_data_->set_auth_key(auth_data_.get_main_auth_key());
     }

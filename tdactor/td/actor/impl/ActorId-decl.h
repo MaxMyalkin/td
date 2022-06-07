@@ -87,7 +87,7 @@ class ActorOwn {
   ActorOwn &operator=(ActorOwn<OtherActorType> &&other);
   ActorOwn(ActorOwn &&other) noexcept;
   ActorOwn &operator=(ActorOwn &&other) noexcept;
-  ActorOwn(const ActorOwn &other) = delete;
+//  ActorOwn(const ActorOwn &other) = delete;
   ActorOwn &operator=(const ActorOwn &other) = delete;
   ~ActorOwn();
 

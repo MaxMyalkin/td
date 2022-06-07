@@ -113,7 +113,8 @@ if (NOT HAVE_STD14)
   message(FATAL_ERROR "No C++14 support in the compiler. Please upgrade the compiler.")
 endif()
 
-add_dependencies(tdjni td_generate_java_api build_java generate_javadoc)
+#add_dependencies(tdjni td_generate_java_api build_java generate_javadoc)
+add_dependencies(tdjni td_generate_java_api build_java)
 
 install(TARGETS tdjni
   LIBRARY DESTINATION bin

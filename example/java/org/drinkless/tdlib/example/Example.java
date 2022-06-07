@@ -304,10 +304,16 @@ public final class Example {
 
     public static void main(String[] args) throws InterruptedException {
         // disable TDLib log
-        Client.execute(new TdApi.SetLogVerbosityLevel(0));
-        if (Client.execute(new TdApi.SetLogStream(new TdApi.LogStreamFile("tdlib.log", 1 << 27, false))) instanceof TdApi.Error) {
+        // Client.execute(new TdApi.SetLogVerbosityLevel(0));
+        // enable TDLib log
+        Client.execute(new TdApi.SetLogVerbosityLevel(4));
+        if (Client.execute(new TdApi.SetLogStream(new TdApi.LogStreamFile("tdlib.log", 1 << 30, true))) instanceof TdApi.Error) {
             throw new IOError(new IOException("Write access to the current directory is required"));
         }
+
+//        if (Client.execute(new TdApi.SetLogStream(new TdApi.LogStreamDefault())) instanceof TdApi.Error) {
+//            throw new IOError(new IOException("Write access to the current directory is required"));
+//        }
 
         // create client
         client = Client.create(new UpdateHandler(), null, null);

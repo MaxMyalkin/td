@@ -449,18 +449,21 @@ static ActorOwn<> get_full_config(DcOption option, Promise<tl_object_ptr<telegra
       return public_rsa_key_;
     }
     mtproto::AuthKey get_auth_key() final {
+      LOG(INFO) << "mixingrr " << " get_auth_key on ConfigManager ";
       string dc_key = G()->td_db()->get_binlog_pmc()->get(auth_key_key());
 
       mtproto::AuthKey res;
       if (!dc_key.empty()) {
         unserialize(res, dc_key).ensure();
       }
+      LOG(INFO) << "mixingrr " << " get_auth_key on AuthDataShared result" << res.key() ;
       return res;
     }
     AuthKeyState get_auth_key_state() final {
       return AuthDataShared::get_auth_key_state(get_auth_key());
     }
     void set_auth_key(const mtproto::AuthKey &auth_key) final {
+      LOG(INFO) << "mixingrr " << " set_auth_key on ConfigManager " << auth_key.key();
       G()->td_db()->get_binlog_pmc()->set(auth_key_key(), serialize(auth_key));
 
       //notify();
